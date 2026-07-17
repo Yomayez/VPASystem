@@ -1,8 +1,8 @@
 import aiohttp
 import asyncio
-'''
+
 class Player:
-    def __init__(self,*, nickname: str, clan: str, trust: int, playtime_ms: int, social_discord: str, social_telegram: str, social_youtube: str, social_tiktok: str, bio: str,friends: int, streak: int, level: int):
+    def __init__(self,*, nickname: str, clan: str, trust: int, playtime_ms: int, social_discord: str, social_telegram: str, social_youtube: str, social_tiktok: str, bio: str,friends: int, streak: int, level: int, coords: dict):
         self.nickname = nickname
         self.clan = clan
         self.trust = trust
@@ -14,19 +14,41 @@ class Player:
         self.bio = bio
         self.friends = friends
         self.streak = streak
-        self.coords = {
-            'x': 0,
-            'y': 0,
-            'z': 0
-        }
-        self.world = None
+        self.coords = coords
         self.level = level
 
-    def set_coords(self, x: int, y: int, z: int, foreign: bool):
-        self.coords['x'] = x
-        self.coords['y'] = y
-        self.coords['z'] = z
-        self.world = 'overworld' if foreign else 'nether'
+
+
+async def get_coords(nickname: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.get('http://burmalda.vo-xo.com:8106/maps/world/live/players.json') as resp:
+            if resp.status == 200:
+                data = await resp.json()
+
+                x = 0
+                y = 0
+                z = 0
+                world = None
+
+                for player in data.get('players'):
+                    if player['name'].lower() == nickname.lower():
+                        try:
+                            x = int(player['position']['x'])
+                            y = int(player['position']['y'])
+                            z = int(player['position']['z'])
+                            world = 'overworld' if bool(player['foreign']) else 'nether'
+
+                        except Exception as e:
+                            print(e)
+
+    coords = {
+        'x': x,
+        'y': y,
+        'z': z,
+        'world': world
+    }
+
+    return coords
 
 
 async def auto(nickname: str):
@@ -35,8 +57,9 @@ async def auto(nickname: str):
             if resp.status == 200:
                 data = await resp.json()
 
+
                 nickname = data.get('identity').get('username')
-                clan = data.get('clam').get('tag')
+                clan = data.get('identity').get('clan').get('tag')
                 trust = data.get('trust')
                 playtime_ms = data.get('playtime').get('total_ms')
                 level = data.get('xp').get('level')
@@ -50,6 +73,8 @@ async def auto(nickname: str):
                 friends = data.get('friends_count')
                 streak = data.get('streak')
 
+                coords = await get_coords(nickname)
+
                 player = Player(
                     nickname=str(nickname),
                     clan=str(clan),
@@ -62,49 +87,35 @@ async def auto(nickname: str):
                     bio=str(bio),
                     friends=int(friends),
                     streak=int(streak),
-                    level=int(level)
+                    level=int(level),
+                    coords=dict(coords)
                 )
 
                 return player
 
             else:
                 return None
-'''
 
 
-async def get_coords(nickname: str):
-    async with aiohttp.ClientSession() as session:
-        async with session.get('http://burmalda.vo-xo.com:8106/maps/world/live/players.json') as resp:
-            if resp.status == 200:
-                data = await resp.json()
 
-                x = 0
-                y = 0
-                z = 0
 
-                for player in data.get('players'):
-                    if player['name'] == nickname.lower():
-                        x = int(player['position']['x'])
-                        y = int(player['position']['y'])
-                        z = int(player['position']['z'])
-                        world = 'overworld' if bool(player['foreign']) else 'nether'
-    coords = {
-        'x': x,
-        'y': y,
-        'z': z,
-        'world': world
-    }
 
-    return coords
+async def main():
+    try:
+        user = await auto(input('nickname: '))
 
-async def main(nick):
-    
-    coords = await get_coords(nick)
-    print(coords)
-    await asyncio.sleep(0.1)
+        print(f'Nickname: {user.nickname}')
+        print(f'Clan: {user.clan}')
+        print(f'Trust: {user.trust}')
+        print(f'Playtime Hours: {user.playtime_ms//1000//3600}')
+        try:
+            print(f"X: {user.coords['x']} Y: {user.coords['y']} Z: {user.coords['z']}")
+            print(f'Dimension: {user.coords["world"]}')
+        except Exception as e:
+            print(e, 'Player is not on server')
+    except Exception as e:
+        print(e, 'Try again with another nickname')
 
 
 if __name__ == '__main__':
-    nick = input("Enter player's nickname: ")
-    while True:
-        asyncio.run(main(nick))
+    asyncio.run(main())
