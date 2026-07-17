@@ -97,13 +97,14 @@ async def get_coords(nickname: str):
 
     return coords
 
-async def main():
-    nick = 'ayanokoji'
+async def main(nick):
+    
     coords = await get_coords(nick)
     print(coords)
     await asyncio.sleep(0.1)
 
 
 if __name__ == '__main__':
+    nick = input('Enter player's nickname: ')
     while True:
-        asyncio.run(main())
+        asyncio.run(main(nick))
