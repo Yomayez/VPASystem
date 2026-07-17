@@ -105,6 +105,6 @@ async def main(nick):
 
 
 if __name__ == '__main__':
-    nick = input('Enter player's nickname: ')
+    nick = input("Enter player's nickname: ")
     while True:
         asyncio.run(main(nick))
