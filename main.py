@@ -1,4 +1,5 @@
 import asyncio
+from other import Player
 
 async def main():
     Pl = Player(nickname=input('Write user nickname: ')
