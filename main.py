@@ -1,7 +1,7 @@
 import asyncio
 
 async def main():
-    Pl = Player(nickname='tehnick_699')
+    Pl = Player(nickname=input('Write user nickname: ')
     await Pl.update()
 
     print(f'World: {Pl.coords.world}')
