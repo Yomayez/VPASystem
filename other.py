@@ -1,9 +1,8 @@
 import aiohttp
 import asyncio
 
+
 class Player:
-    
-    
     class Coords:
         def __init__(self, *, nickname):
             self.nickname = nickname.lower()
@@ -11,7 +10,6 @@ class Player:
             self.x = None
             self.y = None
             self.z = None
-
 
         def _data2coord(self, data, world_name):
             if data is None:
@@ -28,21 +26,18 @@ class Player:
             return False
 
 
+
         async def update(self):
-
-
             async with aiohttp.ClientSession() as session:
                 async with session.get('https://map.vo-xo.com/maps/world/live/players.json') as resp:
                     resp.raise_for_status()
                     data_over = await resp.json()
                     self._data2coord(data_over, 'over')
 
-
                 async with session.get('https://map.vo-xo.com/maps/world_the_nether/live/players.json') as resp:
                     resp.raise_for_status()
                     data_nether = await resp.json()
                     self._data2coord(data_nether, 'nether')
-
 
                 ''' Заглушка для энда
                 async with session.get('https://map.vo-xo.com/maps/#/live/players.json') as resp:
@@ -53,9 +48,8 @@ class Player:
                 '''
 
 
+
     class Clan:
-
-
         def __init__(self, *, tag):
             self.tag = tag
             self.members = None
@@ -73,13 +67,11 @@ class Player:
             self.playtime_ms = None
             self.members = None
 
-
         async def update(self):
             async with aiohttp.ClientSession() as session:
                 async with session.get(f'https://api.vo-xo.com/clans/{self.tag}') as resp:
                     resp.raise_for_status()
                     data = await resp.json()
-
 
             self.members = [ _['user']['username'].lower() for _ in data['members'] ]
             self.name = data['name']
@@ -94,7 +86,6 @@ class Player:
             self.members_can_invite = data['members_can_invite']
             self.creator_username = data['creator_username'].lower()
             self.playtime_ms = data['total_playtime_ms']
-
 
     def __init__(self, *, nickname: str):
         self.nickname = nickname.lower()
@@ -111,7 +102,6 @@ class Player:
         self.playtime_ms = None
         self.level = None
         self.coords = self.Coords(nickname=self.nickname)
-
 
     async def update(self):
         async with aiohttp.ClientSession() as session:
@@ -146,3 +136,19 @@ class Player:
 
         self.friends = [ _['username'].lower() for _ in data['items'] ]
         await self.coords.update()
+
+async def all_players():
+    page = 0
+    async with aiohttp.ClientSession() as session:
+        while True:
+            page += 1
+
+            async with session.get(f'https://api.vo-xo.com/community/players?sort=level&order=desc&page={page}') as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+
+            if data['items'] is not None:
+                players = [ _['user']['username'] for _ in data['items'] ]
+
+    return players
+
