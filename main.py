@@ -1,12 +1,15 @@
 import asyncio
-from other import get_data, write, init_db
 
-db_path = 'base.db'
+async def main():
+    Pl = Player(nickname='tehnick_699')
+    await Pl.update()
 
-async def main(nick):
-    player = await get_data(nick)
-    await write(db_path, player)
+    print(f'World: {Pl.coords.world}')
+    print(f'X: {Pl.coords.x}')
+    print(f'Y: {Pl.coords.y}')
+    print(f'Z: {Pl.coords.z}')
 
+    print(f'Clan: {Pl.clan.name}')
+    print(f'Members: {", ".join(Pl.clan.members)}'
 if __name__ == '__main__':
-    asyncio.run(init_db(db_path))
-    asyncio.run(main(input('Enter user nickname').lower()))
+    asyncio.run(main())
