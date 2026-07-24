@@ -10,6 +10,6 @@ async def main():
     print(f'Z: {Pl.coords.z}')
 
     print(f'Clan: {Pl.clan.name}')
-    print(f'Members: {", ".join(Pl.clan.members)}'
+    print(f'Members: {", ".join(Pl.clan.members)}')
 if __name__ == '__main__':
     asyncio.run(main())
